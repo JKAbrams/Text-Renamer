@@ -2,7 +2,6 @@
 
 import os
 import sys
-from os import listdir
 from PyQt5 import QtCore, QtWidgets, uic
 from PyQt5.QtCore import QDir, QTimer
 from PyQt5.QtWidgets import QFileDialog, QFileSystemModel
@@ -10,15 +9,11 @@ from PyQt5.QtWidgets import QFileDialog, QFileSystemModel
 
 class TextRenamer(QtWidgets.QMainWindow):
     ui = None
-    context = None
     
     currentFullNames = None
-    newNames = None
     currentExtensions = None
     path = None
-    fileCount = 0
     currentIndex = None
-    parentIndex = None
     
     showExtension = False
 
@@ -27,17 +22,14 @@ class TextRenamer(QtWidgets.QMainWindow):
         # init user interface:
         super(TextRenamer, self).__init__()
         self.show()
-
-        # Load main widget-based user interface
         self.ui = uic.loadUi('textRenamer.ui', self)
 
-        # TODO: remember last path
+        # TODO: remember last used path
         self.path = QDir.rootPath() 
-        print(self.path)
 
         # Set up files and folder views
         self.foldersModel = QFileSystemModel()
-        self.parentIndex = self.foldersModel.setRootPath(self.path)
+        self.foldersModel.setRootPath(self.path)
         self.foldersModel.setFilter(QDir.NoDotAndDotDot | QDir.AllDirs)
 
         self.filesModel = QFileSystemModel()
@@ -58,33 +50,8 @@ class TextRenamer(QtWidgets.QMainWindow):
         # Event handlers:
         self.ui.renameButton.clicked.connect(self.renameFiles)
         self.ui.folderView.clicked.connect(self.openFolder)
-        self.ui.filesView.clicked.connect(self.fileClicked)
         self.filesModel.directoryLoaded.connect(self.loadedFolder)
         self.ui.extensionCheckbox.stateChanged.connect(self.extensionCheckboxChanged)
-
-        
-    def fileClicked(self, index):
-        pass
-        #print("opened file:")
-        #self.printObjectInfo('index', index)
-        #self.printObjectInfo('index.parent().child(0,0)', index.parent().child(0,0))
-        ##self.printObjectInfo('index.model()', index.model())
-        ##self.printObjectInfo('index.flags()', index.flags())
-
-        #print("Rows              : " + str(index.row()))
-        #print("File name         : " + str(index.data()))
-        #print("sibling[0]        : " + str(index.siblingAtRow(0).data()))
-        #print("sibling[1]        : " + str(index.siblingAtRow(1).data()))
-        #print("sibling[2]        : " + str(index.siblingAtRow(2).data()))
-        #print("sibling[3]        : " + str(index.siblingAtRow(3).data()))
-
-        #print("Parent name       : " + str(index.parent().data()))
-        #print("Parent row        : " + str(index.parent().row()))
-        #print("Parent sibling[0] : " + str(index.parent().siblingAtRow(0).data()))
-        
-        # try to rename:
-        #if index.data() == "a1.txt":
-        #    index.model
 
 
     def extensionCheckboxChanged(self, state):
@@ -92,27 +59,15 @@ class TextRenamer(QtWidgets.QMainWindow):
             self.showExtension = False
         else:
             self.showExtension = True
-        print(state)
         self.readCurrentNames()
 
 
-    def printObjectInfo(self, txt, obj):
-        print(txt + " : " +  str(type(obj))[8:-2])
-        for attribute in dir(obj):
-            typ = str(type( eval("obj." + attribute) ) )[8:-2]
-            if attribute[:2] != '__':
-                print('    {:<30s} {:<10s}'.format(attribute, typ ) )
-            
-    
     def loadedFolder(self, path):
         # Delay reading to get correct file order
         QTimer.singleShot(1, self.readCurrentNames)
 
 
     def readCurrentNames(self):
-        self.fileCount = self.filesModel.rowCount(self.parentIndex)
-        print('_loaded', self.path, self.fileCount) 
-    
         # Reset
         self.currentFullNames = []
 
@@ -143,13 +98,13 @@ class TextRenamer(QtWidgets.QMainWindow):
 
     def renameFiles(self):
         # Read new names (only use as many rows as we have currentFullNames):
-        self.newNames = self.ui.newText.toPlainText().split('\n')[:len(self.currentFullNames)]
+        newNames = self.ui.newText.toPlainText().split('\n')[:len(self.currentFullNames)]
         
         if self.showExtension:
-            self.newFullNames = self.newNames
+            self.newFullNames = newNames
         else:
             # Add extension
-            self.newFullNames = [i + j for i, j in zip(self.newNames, self.currentExtensions)]
+            self.newFullNames = [i + j for i, j in zip(newNames, self.currentExtensions)]
 
         # TODO: Add temporary filenames for cases where a new name conflicts with a name that has not yet been renamed
 
@@ -206,6 +161,7 @@ class TextRenamer(QtWidgets.QMainWindow):
             if errorCount > 0:
                 labelText += ", Error: " + str(errorCount)
             
+            # Set info text
             self.ui.errorLabel.setText(labelText)
 
 
@@ -213,7 +169,6 @@ class TextRenamer(QtWidgets.QMainWindow):
     def allUnique(self, x):
         seen = set()
         return not any(i in seen or seen.add(i) for i in x)
-
 
 
 def startApplication():
