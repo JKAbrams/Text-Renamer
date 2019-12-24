@@ -22,7 +22,9 @@ class TextRenamer(QtWidgets.QMainWindow):
         # init user interface:
         super(TextRenamer, self).__init__()
         self.show()
-        self.ui = uic.loadUi('textRenamer.ui', self)
+        scriptPath = os.path.dirname(os.path.abspath(__file__))     # Fails if the script is executed by exec()
+        
+        self.ui = uic.loadUi(scriptPath + '/' + 'textRenamer.ui', self)
 
         # TODO: remember last used path
         self.path = QDir.rootPath() 
@@ -64,7 +66,7 @@ class TextRenamer(QtWidgets.QMainWindow):
 
     def loadedFolder(self, path):
         # Delay reading to get correct file order
-        QTimer.singleShot(1, self.readCurrentNames)
+        QTimer.singleShot(100, self.readCurrentNames)
 
 
     def readCurrentNames(self):

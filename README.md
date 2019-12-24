@@ -43,7 +43,7 @@ The application is built in **Python 3** and **Qt5** through **PyQt5**.
 
 Requred python modules is **pyqt5**
 
-    pip install pyqt5
+    pip install PyQt5
     
 Run the application
 
